@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>NERPLO Risk Manager</title>
+  <title>Calculadora de Tamanho da Posição</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,53 +12,26 @@
     body {
       margin: 0;
       padding: 0;
-      background: #020617;
+      background: #0f172a;
       color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       min-height: 100vh;
-    }
-
-    .page {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 16px 40px;
-    }
-
-    .header {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .header-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
-
-    .header-subtitle {
-      font-size: 0.95rem;
-      color: #9ca3af;
-      margin-top: 6px;
     }
 
     .card {
       background: #020617;
       border-radius: 16px;
-      padding: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       border: 1px solid #1f2937;
     }
 
-    .card-chart-large {
-      margin-bottom: 16px;
-    }
-
-    .card-calculator {
-      max-width: 480px;
-      margin: 0 auto;
-      margin-top: 12px;
-    }
-
     .title {
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       font-weight: 600;
       margin-bottom: 4px;
     }
@@ -67,25 +40,6 @@
       font-size: 0.9rem;
       color: #9ca3af;
       margin-bottom: 16px;
-    }
-
-    .chart-header {
-      margin-bottom: 10px;
-    }
-
-    .chart-title {
-      font-size: 1rem;
-      font-weight: 500;
-    }
-
-    .chart-subtitle {
-      font-size: 0.8rem;
-      color: #9ca3af;
-    }
-
-    #tradingview_chart {
-      width: 100%;
-      height: 520px; /* gráfico maior */
     }
 
     .mode-switch {
@@ -220,148 +174,94 @@
       font-size: 0.85rem;
       color: #fca5a5;
     }
-
-    .calc-toggle-wrapper {
-      margin-top: 16px;
-      text-align: center;
-    }
-
-    #toggleCalcBtn {
-      padding: 10px 20px;
-      border-radius: 999px;
-      border: 1px solid #16a34a;
-      background: transparent;
-      color: #bbf7d0;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
-    }
-
-    #toggleCalcBtn:hover {
-      background: #16a34a;
-      color: #052e16;
-      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.35);
-      transform: translateY(-1px);
-    }
-
-    #toggleCalcBtn:active {
-      transform: translateY(0);
-      box-shadow: none;
-    }
   </style>
 </head>
 <body>
-  <div class="page">
-    <header class="header">
-      <div class="header-title">NERPLO Risk Manager</div>
-      </header>
-
-    <!-- GRÁFICO EM TELA CHEIA (LARGURA MÁXIMA) -->
-    <div class="card card-chart-large">
-      <div class="tradingview-widget-container">
-        <div id="tradingview_chart"></div>
-      </div>
+  <div class="card">
+    <div class="title">Calculadora de Tamanho da Posição</div>
+    <div class="subtitle" id="subtitle">
+      Escolha o modo de cálculo abaixo.
     </div>
 
-    <!-- BOTÃO PARA MOSTRAR/OCULTAR CALCULADORA -->
-    <div class="calc-toggle-wrapper">
-      <button id="toggleCalcBtn" type="button">
-        Mostrar calculadora de posição
+    <div class="mode-switch">
+      <button id="mode1Btn" class="mode-btn active" type="button">
+        Modo 1: Risco + Stop %
+      </button>
+      <button id="mode2Btn" class="mode-btn" type="button">
+        Modo 2: Risco + Preço + Stop
       </button>
     </div>
 
-    <!-- CALCULADORA (OPCIONAL / ESCONDIDA INICIALMENTE) -->
-    <div id="calculatorCard" class="card card-calculator" style="display:none;">
-      <div class="title">Calculadora de Tamanho da Posição</div>
-      <div class="subtitle" id="subtitle">
-        Escolha o modo de cálculo abaixo.
-      </div>
+    <div class="field">
+      <label for="risk">Risco por trade (US$)</label>
+      <input id="risk" type="number" step="0.01" value="40">
+    </div>
 
-      <div class="mode-switch">
-        <button id="mode1Btn" class="mode-btn active" type="button">
-          Modo 1: Risco + Stop %
-        </button>
-        <button id="mode2Btn" class="mode-btn" type="button">
-          Modo 2: Risco + Preço + Stop
-        </button>
+    <div class="field">
+      <label for="leverage">Alavancagem (x)</label>
+      <div class="input-row">
+        <input id="leverage" type="number" step="0.1" value="1">
+        <span class="suffix">vezes</span>
       </div>
+    </div>
 
+    <!-- Campos do MODO 1 -->
+    <div id="mode1Fields">
       <div class="field">
-        <label for="risk">Risco por trade (US$)</label>
-        <input id="risk" type="number" step="0.01" value="40">
-      </div>
-
-      <div class="field">
-        <label for="leverage">Alavancagem (x)</label>
+        <label for="stopPercent">Stop loss (%)</label>
         <div class="input-row">
-          <input id="leverage" type="number" step="0.1" value="1">
-          <span class="suffix">vezes</span>
+          <input id="stopPercent" type="number" step="0.01" placeholder="Ex.: 2">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campos do MODO 2 -->
+    <div id="mode2Fields" style="display:none;">
+      <div class="field">
+        <label for="entryPrice">Preço de entrada</label>
+        <div class="input-row">
+          <input id="entryPrice" type="number" step="0.01" placeholder="Ex.: 90000">
+          <span class="suffix">US$</span>
         </div>
       </div>
 
-      <!-- Campos do MODO 1 -->
-      <div id="mode1Fields">
-        <div class="field">
-          <label for="stopPercent">Stop loss (%)</label>
-          <div class="input-row">
-            <input id="stopPercent" type="number" step="0.01" placeholder="Ex.: 2">
-            <span class="suffix">%</span>
-          </div>
+      <div class="field">
+        <label for="stopPrice">Preço do stop</label>
+        <div class="input-row">
+          <input id="stopPrice" type="number" step="0.01" placeholder="Ex.: 89000">
+          <span class="suffix">US$</span>
         </div>
       </div>
+    </div>
 
-      <!-- Campos do MODO 2 -->
-      <div id="mode2Fields" style="display:none;">
-        <div class="field">
-          <label for="entryPrice">Preço de entrada</label>
-          <div class="input-row">
-            <input id="entryPrice" type="number" step="0.01" placeholder="Ex.: 90000">
-            <span class="suffix">US$</span>
-          </div>
-        </div>
+    <button id="calcBtn" type="button">Calcular</button>
 
-        <div class="field">
-          <label for="stopPrice">Preço do stop</label>
-          <div class="input-row">
-            <input id="stopPrice" type="number" step="0.01" placeholder="Ex.: 89000">
-            <span class="suffix">US$</span>
-          </div>
-        </div>
+    <div id="error" class="error" style="display:none;"></div>
+
+    <div class="result" id="result" style="display:none;">
+      <div class="result-line">
+        <span class="label">Stop loss (%):</span>
+        <span class="value" id="stopValue">0,00%</span>
       </div>
-
-      <button id="calcBtn" type="button">Calcular</button>
-
-      <div id="error" class="error" style="display:none;"></div>
-
-      <div class="result" id="result" style="display:none;">
-        <div class="result-line">
-          <span class="label">Stop loss (%):</span>
-          <span class="value" id="stopValue">0,00%</span>
-        </div>
-        <div class="result-line">
-          <span class="label">Tamanho da posição (notional):</span>
-          <span class="value" id="posValue">US$ 0,00</span>
-        </div>
-        <div class="result-line">
-          <span class="label">Margem necessária com alavancagem:</span>
-          <span class="value" id="marginValue">US$ 0,00</span>
-        </div>
+      <div class="result-line">
+        <span class="label">Tamanho da posição (notional):</span>
+        <span class="value" id="posValue">US$ 0,00</span>
       </div>
-
-      <div class="hint" id="hint">
-        Modo 1: você informa o stop em %, e a calculadora encontra o tamanho da posição.<br>
-        Modo 2: você informa entrada e stop em preço, e a calculadora encontra o stop% e o tamanho da posição.
+      <div class="result-line">
+        <span class="label">Margem necessária com alavancagem:</span>
+        <span class="value" id="marginValue">US$ 0,00</span>
       </div>
+    </div>
+
+    <div class="hint" id="hint">
+      Modo 1: você informa o stop em %, e a calculadora encontra o tamanho da posição.<br>
+      Modo 2: você informa entrada e stop em preço, e a calculadora encontra o stop% e o tamanho da posição.
     </div>
   </div>
 
-  <!-- TradingView script -->
-  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-
   <script>
     let currentMode = "mode1"; // "mode1" ou "mode2"
-    let tvWidget = null;
 
     function formatMoney(value) {
       return value.toLocaleString("en-US", {
@@ -392,8 +292,7 @@
         mode2Btn.classList.remove("active");
         mode1Fields.style.display = "block";
         mode2Fields.style.display = "none";
-        subtitle.textContent =
-          "Modo 1: você informa o stop em %, e o sistema calcula o tamanho da posição.";
+        subtitle.textContent = "Modo 1: você informa o stop em %, e o sistema calcula o tamanho da posição.";
         hint.textContent =
           "Informe o risco em US$, o stop em % e a alavancagem. A calculadora retorna o tamanho da posição e a margem necessária.";
       } else {
@@ -401,12 +300,12 @@
         mode1Btn.classList.remove("active");
         mode1Fields.style.display = "none";
         mode2Fields.style.display = "block";
-        subtitle.textContent =
-          "Modo 2: você informa entrada e stop em preço, e o sistema calcula o stop% e o tamanho da posição.";
+        subtitle.textContent = "Modo 2: você informa entrada e stop em preço, e o sistema calcula o stop% e o tamanho da posição.";
         hint.textContent =
           "Informe o risco em US$, o preço de entrada, o preço do stop e a alavancagem. A calculadora retorna o stop em %, o tamanho da posição e a margem necessária.";
       }
 
+      // limpa resultados ao trocar de modo
       document.getElementById("error").style.display = "none";
       document.getElementById("result").style.display = "none";
     }
@@ -476,8 +375,7 @@
       }
 
       if (stopPercent <= 0) {
-        errorBox.textContent =
-          "O stop calculado é inválido (menor ou igual a zero). Verifique os valores.";
+        errorBox.textContent = "O stop calculado é inválido (menor ou igual a zero). Verifique os valores.";
         errorBox.style.display = "block";
         return;
       }
@@ -487,77 +385,31 @@
       const marginRequired = positionSize / leverage; // capital necessário
 
       document.getElementById("stopValue").textContent = formatPercent(stopPercent);
-      document.getElementById("posValue").textContent =
-        "US$ " + formatMoney(positionSize);
-      document.getElementById("marginValue").textContent =
-        "US$ " + formatMoney(marginRequired);
+      document.getElementById("posValue").textContent = "US$ " + formatMoney(positionSize);
+      document.getElementById("marginValue").textContent = "US$ " + formatMoney(marginRequired);
 
       resultBox.style.display = "block";
     }
 
-    function initTradingView() {
-      const containerId = "tradingview_chart";
-      const container = document.getElementById(containerId);
-      if (!container || !window.TradingView) return;
-
-      container.innerHTML = "";
-
-      tvWidget = new TradingView.widget({
-        "container_id": containerId,
-        "width": "100%",
-        "height": 520,
-        "symbol": "BINANCE:BTCUSDT", // símbolo inicial; pode trocar direto no widget
-        "interval": "60",
-        "timezone": "Etc/UTC",
-        "theme": "dark",
-        "style": "1",
-        "locale": "br",
-        "toolbar_bg": "#020617",
-        "enable_publishing": false,
-        "hide_side_toolbar": false,
-        "allow_symbol_change": true
-      });
-    }
-
-    // eventos UI
-    document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("mode1Btn").addEventListener("click", function () {
       setMode("mode1");
-
-      document.getElementById("mode1Btn").addEventListener("click", function () {
-        setMode("mode1");
-      });
-
-      document.getElementById("mode2Btn").addEventListener("click", function () {
-        setMode("mode2");
-      });
-
-      document.getElementById("calcBtn").addEventListener("click", calculate);
-
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          calculate();
-        }
-      });
-
-      const toggleBtn = document.getElementById("toggleCalcBtn");
-      const calcCard = document.getElementById("calculatorCard");
-
-      toggleBtn.addEventListener("click", function () {
-        const isVisible = calcCard.style.display !== "none";
-        if (isVisible) {
-          calcCard.style.display = "none";
-          toggleBtn.textContent = "Mostrar calculadora de posição";
-        } else {
-          calcCard.style.display = "block";
-          toggleBtn.textContent = "Ocultar calculadora de posição";
-        }
-      });
-
-      // inicializa gráfico
-      initTradingView();
     });
+
+    document.getElementById("mode2Btn").addEventListener("click", function () {
+      setMode("mode2");
+    });
+
+    document.getElementById("calcBtn").addEventListener("click", calculate);
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        calculate();
+      }
+    });
+
+    // garante que inicia no modo 1 corretamente
+    setMode("mode1");
   </script>
 </body>
 </html>
-
