@@ -25,7 +25,7 @@
       border-radius: 16px;
       padding: 24px;
       width: 100%;
-      max-width: 440px;
+      max-width: 480px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       border: 1px solid #1f2937;
     }
@@ -39,7 +39,37 @@
     .subtitle {
       font-size: 0.9rem;
       color: #9ca3af;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+    }
+
+    .mode-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      background: #020617;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: transparent;
+      color: #9ca3af;
+      transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .mode-btn.active {
+      background: #16a34a;
+      color: #052e16;
+      transform: translateY(-1px);
     }
 
     label {
@@ -82,7 +112,7 @@
       white-space: nowrap;
     }
 
-    button {
+    button#calcBtn {
       width: 100%;
       margin-top: 10px;
       padding: 10px 14px;
@@ -96,13 +126,13 @@
       transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s;
     }
 
-    button:hover {
+    button#calcBtn:hover {
       transform: translateY(-1px);
       box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);
       opacity: 0.95;
     }
 
-    button:active {
+    button#calcBtn:active {
       transform: translateY(0);
       box-shadow: none;
       opacity: 0.9;
@@ -149,21 +179,22 @@
 <body>
   <div class="card">
     <div class="title">Calculadora de Tamanho da Posição</div>
-    <div class="subtitle">
-      Use risco fixo em US$, stop em % e alavancagem para calcular sua posição.
+    <div class="subtitle" id="subtitle">
+      Escolha o modo de cálculo abaixo.
+    </div>
+
+    <div class="mode-switch">
+      <button id="mode1Btn" class="mode-btn active" type="button">
+        Modo 1: Risco + Stop %
+      </button>
+      <button id="mode2Btn" class="mode-btn" type="button">
+        Modo 2: Risco + Preço + Stop
+      </button>
     </div>
 
     <div class="field">
       <label for="risk">Risco por trade (US$)</label>
       <input id="risk" type="number" step="0.01" value="40">
-    </div>
-
-    <div class="field">
-      <label for="stop">Stop loss (%)</label>
-      <div class="input-row">
-        <input id="stop" type="number" step="0.01" placeholder="Ex.: 2">
-        <span class="suffix">%</span>
-      </div>
     </div>
 
     <div class="field">
@@ -174,11 +205,45 @@
       </div>
     </div>
 
+    <!-- Campos do MODO 1 -->
+    <div id="mode1Fields">
+      <div class="field">
+        <label for="stopPercent">Stop loss (%)</label>
+        <div class="input-row">
+          <input id="stopPercent" type="number" step="0.01" placeholder="Ex.: 2">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campos do MODO 2 -->
+    <div id="mode2Fields" style="display:none;">
+      <div class="field">
+        <label for="entryPrice">Preço de entrada</label>
+        <div class="input-row">
+          <input id="entryPrice" type="number" step="0.01" placeholder="Ex.: 90000">
+          <span class="suffix">US$</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="stopPrice">Preço do stop</label>
+        <div class="input-row">
+          <input id="stopPrice" type="number" step="0.01" placeholder="Ex.: 89000">
+          <span class="suffix">US$</span>
+        </div>
+      </div>
+    </div>
+
     <button id="calcBtn" type="button">Calcular</button>
 
     <div id="error" class="error" style="display:none;"></div>
 
     <div class="result" id="result" style="display:none;">
+      <div class="result-line">
+        <span class="label">Stop loss (%):</span>
+        <span class="value" id="stopValue">0,00%</span>
+      </div>
       <div class="result-line">
         <span class="label">Tamanho da posição (notional):</span>
         <span class="value" id="posValue">US$ 0,00</span>
@@ -189,14 +254,15 @@
       </div>
     </div>
 
-    <div class="hint">
-      Fórmulas:<br>
-      • posição = risco ÷ (stop% / 100)<br>
-      • margem = posição ÷ alavancagem
+    <div class="hint" id="hint">
+      Modo 1: você informa o stop em %, e a calculadora encontra o tamanho da posição.<br>
+      Modo 2: você informa entrada e stop em preço, e a calculadora encontra o stop% e o tamanho da posição.
     </div>
   </div>
 
   <script>
+    let currentMode = "mode1"; // "mode1" ou "mode2"
+
     function formatMoney(value) {
       return value.toLocaleString("en-US", {
         minimumFractionDigits: 2,
@@ -204,16 +270,57 @@
       });
     }
 
+    function formatPercent(value) {
+      return value.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) + "%";
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+
+      const mode1Btn = document.getElementById("mode1Btn");
+      const mode2Btn = document.getElementById("mode2Btn");
+      const mode1Fields = document.getElementById("mode1Fields");
+      const mode2Fields = document.getElementById("mode2Fields");
+      const subtitle = document.getElementById("subtitle");
+      const hint = document.getElementById("hint");
+
+      if (mode === "mode1") {
+        mode1Btn.classList.add("active");
+        mode2Btn.classList.remove("active");
+        mode1Fields.style.display = "block";
+        mode2Fields.style.display = "none";
+        subtitle.textContent = "Modo 1: você informa o stop em %, e o sistema calcula o tamanho da posição.";
+        hint.textContent =
+          "Informe o risco em US$, o stop em % e a alavancagem. A calculadora retorna o tamanho da posição e a margem necessária.";
+      } else {
+        mode2Btn.classList.add("active");
+        mode1Btn.classList.remove("active");
+        mode1Fields.style.display = "none";
+        mode2Fields.style.display = "block";
+        subtitle.textContent = "Modo 2: você informa entrada e stop em preço, e o sistema calcula o stop% e o tamanho da posição.";
+        hint.textContent =
+          "Informe o risco em US$, o preço de entrada, o preço do stop e a alavancagem. A calculadora retorna o stop em %, o tamanho da posição e a margem necessária.";
+      }
+
+      // limpa resultados ao trocar de modo
+      document.getElementById("error").style.display = "none";
+      document.getElementById("result").style.display = "none";
+    }
+
     function calculate() {
       const riskInput = document.getElementById("risk");
-      const stopInput = document.getElementById("stop");
       const levInput = document.getElementById("leverage");
+      const stopPercentInput = document.getElementById("stopPercent");
+      const entryInput = document.getElementById("entryPrice");
+      const stopPriceInput = document.getElementById("stopPrice");
 
       const resultBox = document.getElementById("result");
       const errorBox = document.getElementById("error");
 
       const risk = parseFloat(riskInput.value);
-      const stopPercent = parseFloat(stopInput.value);
       let leverage = parseFloat(levInput.value);
 
       errorBox.style.display = "none";
@@ -225,28 +332,72 @@
         return;
       }
 
-      if (isNaN(stopPercent) || stopPercent <= 0) {
-        errorBox.textContent = "Informe um valor de stop (%) maior que zero.";
-        errorBox.style.display = "block";
-        return;
-      }
-
       if (isNaN(leverage) || leverage <= 0) {
         leverage = 1;
+      }
+
+      let stopPercent;
+
+      if (currentMode === "mode1") {
+        const stopPercentRaw = parseFloat(stopPercentInput.value);
+
+        if (isNaN(stopPercentRaw) || stopPercentRaw <= 0) {
+          errorBox.textContent = "Informe um valor de stop (%) maior que zero.";
+          errorBox.style.display = "block";
+          return;
+        }
+
+        stopPercent = stopPercentRaw;
+      } else {
+        const entry = parseFloat(entryInput.value);
+        const stopPrice = parseFloat(stopPriceInput.value);
+
+        if (isNaN(entry) || entry <= 0) {
+          errorBox.textContent = "Informe um preço de entrada válido.";
+          errorBox.style.display = "block";
+          return;
+        }
+
+        if (isNaN(stopPrice) || stopPrice <= 0) {
+          errorBox.textContent = "Informe um preço de stop válido.";
+          errorBox.style.display = "block";
+          return;
+        }
+
+        if (entry === stopPrice) {
+          errorBox.textContent = "Entrada e stop não podem ser iguais.";
+          errorBox.style.display = "block";
+          return;
+        }
+
+        const diff = Math.abs(entry - stopPrice);
+        stopPercent = (diff / entry) * 100;
+      }
+
+      if (stopPercent <= 0) {
+        errorBox.textContent = "O stop calculado é inválido (menor ou igual a zero). Verifique os valores.";
+        errorBox.style.display = "block";
+        return;
       }
 
       const stopDecimal = stopPercent / 100;
       const positionSize = risk / stopDecimal;        // notional
       const marginRequired = positionSize / leverage; // capital necessário
 
-      document.getElementById("posValue").textContent =
-        "US$ " + formatMoney(positionSize);
-
-      document.getElementById("marginValue").textContent =
-        "US$ " + formatMoney(marginRequired);
+      document.getElementById("stopValue").textContent = formatPercent(stopPercent);
+      document.getElementById("posValue").textContent = "US$ " + formatMoney(positionSize);
+      document.getElementById("marginValue").textContent = "US$ " + formatMoney(marginRequired);
 
       resultBox.style.display = "block";
     }
+
+    document.getElementById("mode1Btn").addEventListener("click", function () {
+      setMode("mode1");
+    });
+
+    document.getElementById("mode2Btn").addEventListener("click", function () {
+      setMode("mode2");
+    });
 
     document.getElementById("calcBtn").addEventListener("click", calculate);
 
@@ -256,6 +407,9 @@
         calculate();
       }
     });
+
+    // garante que inicia no modo 1 corretamente
+    setMode("mode1");
   </script>
 </body>
 </html>
