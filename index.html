@@ -161,7 +161,7 @@
     <div class="field">
       <label for="stop">Stop loss (%)</label>
       <div class="input-row">
-        <input id="stop" type="number" step="0.01" placeholder="Ex.: 8.4">
+        <input id="stop" type="number" step="0.01" placeholder="Ex.: 2">
         <span class="suffix">%</span>
       </div>
     </div>
@@ -171,14 +171,6 @@
       <div class="input-row">
         <input id="leverage" type="number" step="0.1" value="1">
         <span class="suffix">vezes</span>
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="price">Preço de entrada (opcional)</label>
-      <div class="input-row">
-        <input id="price" type="number" step="0.01" placeholder="Ex.: 100.00">
-        <span class="suffix">US$</span>
       </div>
     </div>
 
@@ -194,10 +186,6 @@
       <div class="result-line">
         <span class="label">Margem necessária com alavancagem:</span>
         <span class="value" id="marginValue">US$ 0,00</span>
-      </div>
-      <div class="result-line" id="qtyRow" style="display:none;">
-        <span class="label">Quantidade aproximada:</span>
-        <span class="value" id="qtyValue">0</span>
       </div>
     </div>
 
@@ -220,22 +208,16 @@
       const riskInput = document.getElementById("risk");
       const stopInput = document.getElementById("stop");
       const levInput = document.getElementById("leverage");
-      const priceInput = document.getElementById("price");
 
       const resultBox = document.getElementById("result");
       const errorBox = document.getElementById("error");
-      const qtyRow = document.getElementById("qtyRow");
 
       const risk = parseFloat(riskInput.value);
       const stopPercent = parseFloat(stopInput.value);
       let leverage = parseFloat(levInput.value);
-      const price = parseFloat(priceInput.value);
-
-      console.log("CALCULAR:", { risk, stopPercent, leverage, price });
 
       errorBox.style.display = "none";
       resultBox.style.display = "none";
-      qtyRow.style.display = "none";
 
       if (isNaN(risk) || risk <= 0) {
         errorBox.textContent = "Informe um valor de risco maior que zero.";
@@ -264,17 +246,10 @@
         "US$ " + formatMoney(marginRequired);
 
       resultBox.style.display = "block";
-
-      if (!isNaN(price) && price > 0) {
-        const qty = positionSize / price;
-        document.getElementById("qtyValue").textContent = qty.toFixed(4);
-        qtyRow.style.display = "flex";
-      }
     }
 
     document.getElementById("calcBtn").addEventListener("click", calculate);
 
-    // apertar Enter também calcula
     document.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
