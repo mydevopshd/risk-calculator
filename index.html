@@ -3,187 +3,172 @@
 <head>
   <meta charset="UTF-8" />
   <title>NERPLO Risk Manager</title>
+
   <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="assets/js/main.js" defer></script>
 </head>
 <body>
-
 <div class="app">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div>
       <div class="brand-title">NERPLO</div>
-      <div class="brand-sub">Trading Risk Manager</div>
+      <div class="brand-sub">Painel de Gestão de Risco</div>
     </div>
 
     <div class="nav-section-title">Ferramentas</div>
 
-    <div class="nav">
-      <button id="btnSimulator" class="nav-btn active">
-        📊 Simulador de Banca
+    <nav class="nav">
+
+      <button class="nav-btn active" data-tool="tool-banca">
+        🧮 Simulador de Banca
       </button>
 
-      <button id="btnPosition" class="nav-btn">
+      <button class="nav-btn" data-tool="tool-posicao">
         📏 Calculadora de Posição
       </button>
-    </div>
 
-    <div class="sidebar-footer">
-      v0.3 • NERPLO
-    </div>
+    </nav>
+
+    <div class="sidebar-footer">v0.3 • NERPLO</div>
   </aside>
+
 
   <!-- MAIN -->
   <main class="main">
 
-    <div>
-      <div class="main-title">Simulador de Banca</div>
-      <div class="main-subtitle">
-        Simule crescimento ou queda da sua banca com base em risco, taxa de acerto e R:R.
-      </div>
-    </div>
+    <!-- TOOL A -->
+    <section id="tool-banca" class="card">
 
-    <!-- SIMULADOR DE BANCA -->
-    <section id="simulatorSection" class="card">
+      <h1 class="main-title">Simulador de Sobrevivência da Banca</h1>
+      <p class="main-subtitle">
+        Veja, em dinheiro, quanto você ganha ou perde e como sua banca evolui ao longo do tempo.
+      </p>
 
       <div class="fields-row">
         <div class="field">
           <label>Banca inicial (US$)</label>
-          <input type="number" id="simInitial" value="100" />
+          <input id="bank" type="number" value="100">
         </div>
 
         <div class="field">
           <label>Risco por trade (%)</label>
-          <input type="number" id="simRisk" value="2" />
+          <input id="riskPct" type="number" value="2">
         </div>
 
         <div class="field">
           <label>Taxa de acerto (%)</label>
-          <input type="number" id="simWinRate" value="50" />
+          <input id="winRate" type="number" value="50">
         </div>
 
         <div class="field">
-          <label>R : R</label>
-          <input type="number" id="simRR" value="2" />
+          <label>R:R</label>
+          <input id="rr" type="number" value="2">
         </div>
 
         <div class="field">
-          <label>Nº de trades</label>
-          <input type="number" id="simTrades" value="50" />
+          <label>Nº de trades simulados</label>
+          <input id="numTrades" type="number" value="50">
         </div>
       </div>
 
-      <button id="runSimulation" class="btn-primary">
-        Simular estratégia
-      </button>
+      <button id="simulateBtn" class="btn-primary">Simular estratégia</button>
+      <div id="simError" class="error"></div>
 
-      <div id="simulatorError" class="error"></div>
-
-      <div id="simulatorResults" class="results">
+      <div id="simResults" class="results">
 
         <div class="results-row">
           <div class="result-card">
             <div class="result-item-label">Ganho por trade vencedor</div>
-            <div class="result-item-value" id="winValue">–</div>
+            <div id="winPerTrade" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
             <div class="result-item-label">Perda por trade perdedor</div>
-            <div class="result-item-value" id="lossValue">–</div>
+            <div id="lossPerTrade" class="result-item-value">—</div>
           </div>
         </div>
 
         <div class="results-row">
           <div class="result-card">
-            <div class="result-item-label" id="expectedLabel">Banca esperada após N trades</div>
-            <div class="result-item-value" id="expectedBank">–</div>
+            <div id="labelExpected" class="result-item-label">—</div>
+            <div id="expectedBank" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
-            <div class="result-item-label" id="allWinLabel">Banca se todos os trades vencerem</div>
-            <div class="result-item-value" id="allWinBank">–</div>
+            <div id="labelAllWins" class="result-item-label">—</div>
+            <div id="bankAllWins" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
-            <div class="result-item-label" id="allLossLabel">Banca se todos os trades perderem</div>
-            <div class="result-item-value" id="allLossBank">–</div>
+            <div id="labelAllLosses" class="result-item-label">—</div>
+            <div id="bankAllLosses" class="result-item-value">—</div>
           </div>
         </div>
 
-        <span id="expectancyBadge" class="badge"></span>
+        <div id="expBadge" class="badge"></div>
+
       </div>
 
     </section>
 
-    <!-- CALCULADORA DE POSIÇÃO -->
-    <section id="positionSection" class="card" style="margin-top:30px; display:none;">
 
-      <div class="main-title">Calculadora de Tamanho de Posição</div>
-      <div class="main-subtitle">
-        Descubra a posição ideal para manter risco fixo.
-      </div>
 
-      <div style="margin: 10px 0;">
-        <button id="mode1Btn" class="nav-btn active">Modo 1: Stop em %</button>
-        <button id="mode2Btn" class="nav-btn">Modo 2: Preço de stop</button>
-      </div>
+    <!-- TOOL B -->
+    <section id="tool-posicao" class="card" style="display:none;">
+
+      <h1 class="main-title">Calculadora de Tamanho da Posição</h1>
+      <p class="main-subtitle">
+        Defina quanto quer arriscar e descubra o tamanho ideal do seu trade.
+      </p>
 
       <div class="fields-row">
+
         <div class="field">
           <label>Risco por trade (US$)</label>
-          <input type="number" id="posRisk" value="40" />
+          <input id="riskUSD" type="number" value="40">
+        </div>
+
+        <div class="field">
+          <label>Stop loss (%)</label>
+          <input id="stopPct" type="number" value="2">
         </div>
 
         <div class="field">
           <label>Alavancagem (x)</label>
-          <input type="number" id="posLeverage" value="1" />
-        </div>
-      </div>
-
-      <!-- MODO 1 -->
-      <div id="mode1Fields" class="fields-row">
-        <div class="field">
-          <label>Stop loss (%)</label>
-          <input type="number" id="posStopPercent" />
-        </div>
-      </div>
-
-      <!-- MODO 2 -->
-      <div id="mode2Fields" class="fields-row" style="display:none;">
-        <div class="field">
-          <label>Preço de entrada</label>
-          <input type="number" id="posEntry" />
+          <input id="leverage" type="number" value="1">
         </div>
 
         <div class="field">
-          <label>Preço do stop</label>
-          <input type="number" id="posStop" />
+          <label>Preço de entrada (opcional)</label>
+          <input id="entryPrice" type="number" placeholder="Ex: 90000">
         </div>
+
       </div>
 
-      <button id="calcPosition" class="btn-primary">
-        Calcular posição
-      </button>
+      <button id="calcPositionBtn" class="btn-primary">Calcular posição</button>
+      <div id="posError" class="error"></div>
 
-      <div id="positionError" class="error"></div>
-
-      <div id="positionResults" class="results">
+      <div id="posResults" class="results">
 
         <div class="results-row">
-          <div class="result-card">
-            <div class="result-item-label">Stop (%)</div>
-            <div class="result-item-value" id="stopCalc">–</div>
-          </div>
 
           <div class="result-card">
-            <div class="result-item-label">Tamanho da posição</div>
-            <div class="result-item-value" id="positionCalc">–</div>
+            <div class="result-item-label">Tamanho da posição (US$)</div>
+            <div id="positionSize" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
             <div class="result-item-label">Margem necessária</div>
-            <div class="result-item-value" id="marginCalc">–</div>
+            <div id="marginNeeded" class="result-item-value">—</div>
           </div>
+
+          <div class="result-card">
+            <div class="result-item-label">Quantidade aproximada</div>
+            <div id="positionQty" class="result-item-value">—</div>
+          </div>
+
         </div>
 
       </div>
@@ -191,9 +176,7 @@
     </section>
 
   </main>
-
 </div>
 
-<script src="assets/js/main.js"></script>
 </body>
 </html>
