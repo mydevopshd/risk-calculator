@@ -1,66 +1,14 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>NERPLO Risk Manager</title>
-  <link rel="stylesheet" href="assets/css/styles.css">
-  <script src="assets/js/main.js" defer></script>
-
-  <style>
-    .mode-switch {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-
-    .mode-btn {
-      flex: 1;
-      padding: 8px;
-      border-radius: 999px;
-      border: 1px solid #1f2937;
-      background: transparent;
-      color: #d1d5db;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .mode-btn.active {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: #052e16;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div>
-      <div class="brand-title">NERPLO</div>
-      <div class="brand-sub">Painel de Gestão de Risco</div>
-    </div>
-
-    <div class="nav-section-title">Ferramentas</div>
-
-    <nav class="nav">
-      <button class="nav-btn active" data-tool="tool-banca">
-        🧮 Simulador de Banca
-      </button>
-
-      <button class="nav-btn" data-tool="tool-posicao">
-        📏 Calculadora de Posição
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">v0.5 • NERPLO</div>
-  </aside>
-
-
   <!-- MAIN -->
   <main class="main">
+
+    <!-- HERO / MARCA -->
+    <header class="hero">
+      <img
+        src="assets/img/nerplo-hero.png"
+        alt="NERPLO Trading Strategies"
+        class="hero-image"
+      />
+    </header>
 
     <!-- ==================== TOOL A ==================== -->
     <section id="tool-banca" class="card">
@@ -219,7 +167,3 @@
     </section>
 
   </main>
-</div>
-
-</body>
-</html>
