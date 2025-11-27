@@ -1,13 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>NERPLO Risk Manager</title>
 
-  <link rel="stylesheet" href="assets/css/styles.css" />
-  <script src="assets/js/main.js" defer></script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+
+  <style>
+    .mode-switch {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 999px;
+      border: 1px solid #1f2937;
+      background: transparent;
+      color: #d1d5db;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #052e16;
+      font-weight: bold;
+    }
+  </style>
 </head>
+
 <body>
+
 <div class="app">
 
   <!-- SIDEBAR -->
@@ -20,7 +46,6 @@
     <div class="nav-section-title">Ferramentas</div>
 
     <nav class="nav">
-
       <button class="nav-btn active" data-tool="tool-banca">
         🧮 Simulador de Banca
       </button>
@@ -28,25 +53,25 @@
       <button class="nav-btn" data-tool="tool-posicao">
         📏 Calculadora de Posição
       </button>
-
     </nav>
 
-    <div class="sidebar-footer">v0.3 • NERPLO</div>
+    <div class="sidebar-footer">v0.4 • NERPLO</div>
   </aside>
 
 
   <!-- MAIN -->
   <main class="main">
 
-    <!-- TOOL A -->
+    <!-- ==================== TOOL A ==================== -->
     <section id="tool-banca" class="card">
 
       <h1 class="main-title">Simulador de Sobrevivência da Banca</h1>
       <p class="main-subtitle">
-        Veja, em dinheiro, quanto você ganha ou perde e como sua banca evolui ao longo do tempo.
+        Veja como sua banca se comporta ao longo dos trades.
       </p>
 
       <div class="fields-row">
+
         <div class="field">
           <label>Banca inicial (US$)</label>
           <input id="bank" type="number" value="100">
@@ -68,9 +93,10 @@
         </div>
 
         <div class="field">
-          <label>Nº de trades simulados</label>
+          <label>Nº de trades</label>
           <input id="numTrades" type="number" value="50">
         </div>
+
       </div>
 
       <button id="simulateBtn" class="btn-primary">Simular estratégia</button>
@@ -92,17 +118,17 @@
 
         <div class="results-row">
           <div class="result-card">
-            <div id="labelExpected" class="result-item-label">—</div>
+            <div id="labelExpected" class="result-item-label"></div>
             <div id="expectedBank" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
-            <div id="labelAllWins" class="result-item-label">—</div>
+            <div id="labelAllWins" class="result-item-label"></div>
             <div id="bankAllWins" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
-            <div id="labelAllLosses" class="result-item-label">—</div>
+            <div id="labelAllLosses" class="result-item-label"></div>
             <div id="bankAllLosses" class="result-item-value">—</div>
           </div>
         </div>
@@ -114,61 +140,77 @@
     </section>
 
 
-
-    <!-- TOOL B -->
+    <!-- ==================== TOOL B ==================== -->
     <section id="tool-posicao" class="card" style="display:none;">
 
       <h1 class="main-title">Calculadora de Tamanho da Posição</h1>
       <p class="main-subtitle">
-        Defina quanto quer arriscar e descubra o tamanho ideal do seu trade.
+        Calcule o tamanho correto do trade com base no risco que deseja assumir.
       </p>
+
+      <div class="mode-switch">
+        <button id="mode1Btn" class="mode-btn active" type="button">
+          Modo 1: Risco + Stop %
+        </button>
+        <button id="mode2Btn" class="mode-btn" type="button">
+          Modo 2: Risco + Entrada + Stop
+        </button>
+      </div>
 
       <div class="fields-row">
 
         <div class="field">
           <label>Risco por trade (US$)</label>
-          <input id="riskUSD" type="number" value="40">
-        </div>
-
-        <div class="field">
-          <label>Stop loss (%)</label>
-          <input id="stopPct" type="number" value="2">
+          <input id="risk" type="number" value="40">
         </div>
 
         <div class="field">
           <label>Alavancagem (x)</label>
           <input id="leverage" type="number" value="1">
         </div>
+      </div>
 
+      <!-- MODO 1 -->
+      <div id="mode1Fields" class="fields-row">
         <div class="field">
-          <label>Preço de entrada (opcional)</label>
+          <label>Stop Loss (%)</label>
+          <input id="stopPercent" type="number" placeholder="Ex: 2">
+        </div>
+      </div>
+
+      <!-- MODO 2 -->
+      <div id="mode2Fields" class="fields-row" style="display:none;">
+        <div class="field">
+          <label>Preço de entrada</label>
           <input id="entryPrice" type="number" placeholder="Ex: 90000">
         </div>
 
+        <div class="field">
+          <label>Preço do stop</label>
+          <input id="stopPrice" type="number" placeholder="Ex: 89000">
+        </div>
       </div>
 
-      <button id="calcPositionBtn" class="btn-primary">Calcular posição</button>
-      <div id="posError" class="error"></div>
+      <button id="calcBtn" class="btn-primary">Calcular posição</button>
+      <div id="error" class="error"></div>
 
-      <div id="posResults" class="results">
+      <div id="result" class="results">
 
         <div class="results-row">
+          <div class="result-card">
+            <div class="result-item-label">Stop (%)</div>
+            <div id="stopValue" class="result-item-value">—</div>
+          </div>
 
           <div class="result-card">
             <div class="result-item-label">Tamanho da posição (US$)</div>
-            <div id="positionSize" class="result-item-value">—</div>
+            <div id="posValue" class="result-item-value">—</div>
           </div>
 
           <div class="result-card">
             <div class="result-item-label">Margem necessária</div>
-            <div id="marginNeeded" class="result-item-value">—</div>
+            <div id="marginValue" class="result-item-value">—</div>
           </div>
-
-          <div class="result-card">
-            <div class="result-item-label">Quantidade aproximada</div>
-            <div id="positionQty" class="result-item-value">—</div>
-          </div>
-
         </div>
 
       </div>
@@ -178,5 +220,150 @@
   </main>
 </div>
 
+
+<!-- ==================== JAVASCRIPT ==================== -->
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+/* ===== MENU ===== */
+const navButtons = document.querySelectorAll(".nav-btn[data-tool]");
+const tools = {
+  "tool-banca": document.getElementById("tool-banca"),
+  "tool-posicao": document.getElementById("tool-posicao")
+};
+
+navButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tool = btn.dataset.tool;
+
+    navButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    Object.keys(tools).forEach(key => {
+      tools[key].style.display = (key === tool) ? "block" : "none";
+    });
+  });
+});
+
+/* ===== FORMATAÇÃO ===== */
+const formatMoney = (v) => "US$ " + v.toLocaleString("en-US",{minimumFractionDigits:2});
+const formatPercent = (v) => v.toFixed(2) + "%";
+
+/* ===== TOOL A ===== */
+document.getElementById("simulateBtn").addEventListener("click", () => {
+
+  const bank = parseFloat(bank.value);
+  const riskPct = parseFloat(riskPct.value);
+  const winRate = parseFloat(winRate.value);
+  const rr = parseFloat(rr.value);
+  const N = parseInt(numTrades.value);
+
+  const errorBox = document.getElementById("simError");
+  const resultsBox = document.getElementById("simResults");
+  const expBadge = document.getElementById("expBadge");
+
+  errorBox.style.display = "none";
+  resultsBox.style.display = "none";
+
+  if (!bank || !riskPct || !rr || !N) {
+    errorBox.innerText = "Preencha todos os campos";
+    errorBox.style.display = "block";
+    return;
+  }
+
+  const riskDecimal = riskPct / 100;
+  const riskAmount = bank * riskDecimal;
+  const winAmount = riskAmount * rr;
+
+  const p = winRate / 100;
+  const expectancy = (p * rr) - (1 - p);
+  const growth = 1 + (expectancy * riskDecimal);
+
+  const expected = bank * Math.pow(growth, N);
+  const allWins = bank * Math.pow(1 + (riskDecimal * rr), N);
+  const allLosses = bank * Math.pow(1 - riskDecimal, N);
+
+  labelExpected.innerText = `Banca esperada após ${N} trades`;
+  labelAllWins.innerText = `Banca se TODOS os ${N} trades forem vencedores`;
+  labelAllLosses.innerText = `Banca se TODOS os ${N} trades forem perdedores`;
+
+  winPerTrade.innerText = formatMoney(winAmount);
+  lossPerTrade.innerText = formatMoney(riskAmount);
+  expectedBank.innerText = formatMoney(expected);
+  bankAllWins.innerText = formatMoney(allWins);
+  bankAllLosses.innerText = formatMoney(allLosses);
+
+  expBadge.innerText = expectancy > 0
+    ? "Estratégia com expectativa POSITIVA"
+    : "Estratégia com expectativa NEGATIVA ou NEUTRA";
+
+  resultsBox.style.display = "block";
+});
+
+
+
+/* ===== TOOL B ===== */
+let currentMode = "mode1";
+
+mode1Btn.addEventListener("click", () => setMode("mode1"));
+mode2Btn.addEventListener("click", () => setMode("mode2"));
+
+function setMode(mode) {
+  currentMode = mode;
+  mode1Fields.style.display = (mode === "mode1") ? "flex" : "none";
+  mode2Fields.style.display = (mode === "mode2") ? "flex" : "none";
+
+  mode1Btn.classList.toggle("active", mode === "mode1");
+  mode2Btn.classList.toggle("active", mode === "mode2");
+
+  result.style.display = "none";
+  error.style.display = "none";
+}
+
+calcBtn.addEventListener("click", () => {
+
+  const risk = parseFloat(risk.value);
+  const leverageVal = parseFloat(leverage.value) || 1;
+
+  error.style.display = "none";
+  result.style.display = "none";
+
+  let stopPercent;
+
+  if (currentMode === "mode1") {
+    stopPercent = parseFloat(stopPercent.value);
+    if (!stopPercent) {
+      error.innerText = "Informe o Stop (%)";
+      error.style.display = "block";
+      return;
+    }
+
+  } else {
+    const entry = parseFloat(entryPrice.value);
+    const stop = parseFloat(stopPrice.value);
+
+    if (!entry || !stop) {
+      error.innerText = "Informe entrada e stop";
+      error.style.display = "block";
+      return;
+    }
+
+    stopPercent = Math.abs(entry - stop) / entry * 100;
+  }
+
+  const positionSize = risk / (stopPercent / 100);
+  const margin = positionSize / leverageVal;
+
+  stopValue.innerText = formatPercent(stopPercent);
+  posValue.innerText = formatMoney(positionSize);
+  marginValue.innerText = formatMoney(margin);
+
+  result.style.display = "block";
+
+});
+
+});
+</script>
 </body>
 </html>
