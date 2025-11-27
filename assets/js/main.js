@@ -1,6 +1,3 @@
-alert("JS carregado com sucesso!");
-
-
 // Utilitário de dinheiro
 function formatMoney(value) {
   return value.toLocaleString("en-US", {
