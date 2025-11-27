@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>NERPLO Risk Manager</title>
-
   <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/main.js" defer></script>
 
   <style>
     .mode-switch {
@@ -55,7 +55,7 @@
       </button>
     </nav>
 
-    <div class="sidebar-footer">v0.4 • NERPLO</div>
+    <div class="sidebar-footer">v0.5 • NERPLO</div>
   </aside>
 
 
@@ -140,12 +140,13 @@
     </section>
 
 
+
     <!-- ==================== TOOL B ==================== -->
     <section id="tool-posicao" class="card" style="display:none;">
 
       <h1 class="main-title">Calculadora de Tamanho da Posição</h1>
       <p class="main-subtitle">
-        Calcule o tamanho correto do trade com base no risco que deseja assumir.
+        Descubra exatamente qual o tamanho do trade para arriscar apenas o valor que você deseja.
       </p>
 
       <div class="mode-switch">
@@ -220,150 +221,5 @@
   </main>
 </div>
 
-
-<!-- ==================== JAVASCRIPT ==================== -->
-<script>
-
-document.addEventListener("DOMContentLoaded", () => {
-
-/* ===== MENU ===== */
-const navButtons = document.querySelectorAll(".nav-btn[data-tool]");
-const tools = {
-  "tool-banca": document.getElementById("tool-banca"),
-  "tool-posicao": document.getElementById("tool-posicao")
-};
-
-navButtons.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const tool = btn.dataset.tool;
-
-    navButtons.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    Object.keys(tools).forEach(key => {
-      tools[key].style.display = (key === tool) ? "block" : "none";
-    });
-  });
-});
-
-/* ===== FORMATAÇÃO ===== */
-const formatMoney = (v) => "US$ " + v.toLocaleString("en-US",{minimumFractionDigits:2});
-const formatPercent = (v) => v.toFixed(2) + "%";
-
-/* ===== TOOL A ===== */
-document.getElementById("simulateBtn").addEventListener("click", () => {
-
-  const bank = parseFloat(bank.value);
-  const riskPct = parseFloat(riskPct.value);
-  const winRate = parseFloat(winRate.value);
-  const rr = parseFloat(rr.value);
-  const N = parseInt(numTrades.value);
-
-  const errorBox = document.getElementById("simError");
-  const resultsBox = document.getElementById("simResults");
-  const expBadge = document.getElementById("expBadge");
-
-  errorBox.style.display = "none";
-  resultsBox.style.display = "none";
-
-  if (!bank || !riskPct || !rr || !N) {
-    errorBox.innerText = "Preencha todos os campos";
-    errorBox.style.display = "block";
-    return;
-  }
-
-  const riskDecimal = riskPct / 100;
-  const riskAmount = bank * riskDecimal;
-  const winAmount = riskAmount * rr;
-
-  const p = winRate / 100;
-  const expectancy = (p * rr) - (1 - p);
-  const growth = 1 + (expectancy * riskDecimal);
-
-  const expected = bank * Math.pow(growth, N);
-  const allWins = bank * Math.pow(1 + (riskDecimal * rr), N);
-  const allLosses = bank * Math.pow(1 - riskDecimal, N);
-
-  labelExpected.innerText = `Banca esperada após ${N} trades`;
-  labelAllWins.innerText = `Banca se TODOS os ${N} trades forem vencedores`;
-  labelAllLosses.innerText = `Banca se TODOS os ${N} trades forem perdedores`;
-
-  winPerTrade.innerText = formatMoney(winAmount);
-  lossPerTrade.innerText = formatMoney(riskAmount);
-  expectedBank.innerText = formatMoney(expected);
-  bankAllWins.innerText = formatMoney(allWins);
-  bankAllLosses.innerText = formatMoney(allLosses);
-
-  expBadge.innerText = expectancy > 0
-    ? "Estratégia com expectativa POSITIVA"
-    : "Estratégia com expectativa NEGATIVA ou NEUTRA";
-
-  resultsBox.style.display = "block";
-});
-
-
-
-/* ===== TOOL B ===== */
-let currentMode = "mode1";
-
-mode1Btn.addEventListener("click", () => setMode("mode1"));
-mode2Btn.addEventListener("click", () => setMode("mode2"));
-
-function setMode(mode) {
-  currentMode = mode;
-  mode1Fields.style.display = (mode === "mode1") ? "flex" : "none";
-  mode2Fields.style.display = (mode === "mode2") ? "flex" : "none";
-
-  mode1Btn.classList.toggle("active", mode === "mode1");
-  mode2Btn.classList.toggle("active", mode === "mode2");
-
-  result.style.display = "none";
-  error.style.display = "none";
-}
-
-calcBtn.addEventListener("click", () => {
-
-  const risk = parseFloat(risk.value);
-  const leverageVal = parseFloat(leverage.value) || 1;
-
-  error.style.display = "none";
-  result.style.display = "none";
-
-  let stopPercent;
-
-  if (currentMode === "mode1") {
-    stopPercent = parseFloat(stopPercent.value);
-    if (!stopPercent) {
-      error.innerText = "Informe o Stop (%)";
-      error.style.display = "block";
-      return;
-    }
-
-  } else {
-    const entry = parseFloat(entryPrice.value);
-    const stop = parseFloat(stopPrice.value);
-
-    if (!entry || !stop) {
-      error.innerText = "Informe entrada e stop";
-      error.style.display = "block";
-      return;
-    }
-
-    stopPercent = Math.abs(entry - stop) / entry * 100;
-  }
-
-  const positionSize = risk / (stopPercent / 100);
-  const margin = positionSize / leverageVal;
-
-  stopValue.innerText = formatPercent(stopPercent);
-  posValue.innerText = formatMoney(positionSize);
-  marginValue.innerText = formatMoney(margin);
-
-  result.style.display = "block";
-
-});
-
-});
-</script>
 </body>
 </html>
