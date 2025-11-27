@@ -1,9 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // =========================
-  // NAVEGAÇÃO DO MENU
-  // =========================
-  const navButtons = document.querySelectorAll(".nav-btn");
+  const formatMoney = (value) => {
+    return value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  /* =============================
+     MENU - troca de ferramentas
+  ============================== */
+  const navButtons = document.querySelectorAll(".nav-btn[data-tool]");
+
   const tools = {
     "tool-banca": document.getElementById("tool-banca"),
     "tool-posicao": document.getElementById("tool-posicao")
@@ -11,31 +19,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      const tool = btn.dataset.tool;
-      if (!tool) return;
+
+      const tool = btn.getAttribute("data-tool");
 
       navButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
-      for (let key in tools) {
+      Object.keys(tools).forEach(key => {
         tools[key].style.display = (key === tool) ? "block" : "none";
-      }
+      });
+
     });
   });
 
-  function formatMoney(value) {
-    return value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
 
-  // =========================
-  // FERRAMENTA A - Banca
-  // =========================
-  const simulateBtn = document.getElementById("simulateBtn");
-
-  simulateBtn.addEventListener("click", () => {
+  /* =============================
+     FERRAMENTA A - BANCA
+  ============================== */
+  document.getElementById("simulateBtn").addEventListener("click", () => {
 
     const bank = parseFloat(document.getElementById("bank").value);
     const riskPct = parseFloat(document.getElementById("riskPct").value);
@@ -85,21 +86,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("bankAllWins").innerText = "US$ " + formatMoney(allWins);
     document.getElementById("bankAllLosses").innerText = "US$ " + formatMoney(allLosses);
 
-    expBadge.innerText = expectancy > 0
-      ? "Estratégia com expectativa POSITIVA"
-      : expectancy < 0
-      ? "Estratégia com expectativa NEGATIVA"
-      : "Expectativa NEUTRA";
+    if (expectancy > 0) {
+      expBadge.innerText = "Estratégia com expectativa POSITIVA";
+    } else {
+      expBadge.innerText = "Estratégia com expectativa NEGATIVA / NEUTRA";
+      expBadge.classList.add("badge-neg");
+    }
 
     resultsBox.style.display = "block";
+
   });
 
-  // =========================
-  // FERRAMENTA B - Posição
-  // =========================
-  const calcBtn = document.getElementById("calcPositionBtn");
 
-  calcBtn.addEventListener("click", () => {
+  /* =============================
+     FERRAMENTA B - POSIÇÃO
+  ============================== */
+  document.getElementById("calcPositionBtn").addEventListener("click", () => {
 
     const riskUSD = parseFloat(document.getElementById("riskUSD").value);
     const stopPct = parseFloat(document.getElementById("stopPct").value);
@@ -112,8 +114,8 @@ document.addEventListener("DOMContentLoaded", () => {
     errorBox.style.display = "none";
     resultsBox.style.display = "none";
 
-    if (!riskUSD || !stopPct || stopPct <= 0) {
-      errorBox.innerText = "Informe risco e stop corretamente.";
+    if (!riskUSD || !stopPct) {
+      errorBox.innerText = "Preencha risco e stop corretamente.";
       errorBox.style.display = "block";
       return;
     }
@@ -123,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let qty = "—";
     if (entryPrice) {
-      qty = positionSize / entryPrice;
+      qty = (positionSize / entryPrice).toFixed(6);
     }
 
     document.getElementById("positionSize").innerText =
@@ -133,9 +135,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "US$ " + formatMoney(margin);
 
     document.getElementById("positionQty").innerText =
-      entryPrice ? qty.toFixed(6) : "Informe o preço";
+      qty === "—" ? "Informe o preço" : qty;
 
     resultsBox.style.display = "block";
 
   });
+
 });
