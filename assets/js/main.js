@@ -1,122 +1,98 @@
-// Utilitário de dinheiro
-function formatMoney(value) {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  const bankInput = document.getElementById("bank");
-  const riskPctInput = document.getElementById("riskPct");
-  const winRateInput = document.getElementById("winRate");
-  const rrInput = document.getElementById("rr");
-  const numTradesInput = document.getElementById("numTrades");
 
-  const errorBox = document.getElementById("simError");
-  const resultsBox = document.getElementById("simResults");
-  const expBadge = document.getElementById("expBadge");
-
-  const winPerTradeEl = document.getElementById("winPerTrade");
-  const lossPerTradeEl = document.getElementById("lossPerTrade");
-  const expectedBankEl = document.getElementById("expectedBank");
-  const bankAllWinsEl = document.getElementById("bankAllWins");
-  const bankAllLossesEl = document.getElementById("bankAllLosses");
-
-  const labelExpectedEl = document.getElementById("labelExpected");
-  const labelAllWinsEl = document.getElementById("labelAllWins");
-  const labelAllLossesEl = document.getElementById("labelAllLosses");
+  function formatMoney(value) {
+    return value.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
 
   const simulateBtn = document.getElementById("simulateBtn");
 
   simulateBtn.addEventListener("click", () => {
+
+    const bankValue = parseFloat(document.getElementById("bank").value);
+    const riskPctValue = parseFloat(document.getElementById("riskPct").value);
+    const winRateValue = parseFloat(document.getElementById("winRate").value);
+    const rrValue = parseFloat(document.getElementById("rr").value);
+    const numTradesValue = parseInt(document.getElementById("numTrades").value);
+
+    const errorBox = document.getElementById("simError");
+    const resultsBox = document.getElementById("simResults");
+    const expBadge = document.getElementById("expBadge");
+
     errorBox.style.display = "none";
     resultsBox.style.display = "none";
-    expBadge.textContent = "";
     expBadge.className = "badge";
 
-    const bankValue = parseFloat(bankInput.value);
-    const riskPctValue = parseFloat(riskPctInput.value);
-    const winRateValue = parseFloat(winRateInput.value);
-    const rrValue = parseFloat(rrInput.value);
-    const numTradesValue = parseInt(numTradesInput.value, 10);
-
-    // Validações básicas
-    if (isNaN(bankValue) || bankValue <= 0) {
-      errorBox.textContent = "Informe uma banca inicial válida (maior que zero).";
+    // Validações
+    if (!bankValue || bankValue <= 0) {
+      errorBox.innerText = "Informe uma banca inicial válida";
       errorBox.style.display = "block";
       return;
     }
 
-    if (isNaN(riskPctValue) || riskPctValue <= 0 || riskPctValue > 100) {
-      errorBox.textContent = "Informe um risco por trade válido (entre 0 e 100%).";
+    if (!riskPctValue || riskPctValue <= 0) {
+      errorBox.innerText = "Informe um risco válido";
       errorBox.style.display = "block";
       return;
     }
 
-    if (isNaN(winRateValue) || winRateValue < 0 || winRateValue > 100) {
-      errorBox.textContent = "Informe uma taxa de acerto válida (entre 0% e 100%).";
+    if (winRateValue < 0 || winRateValue > 100) {
+      errorBox.innerText = "Informe uma taxa de acerto válida (0 a 100)";
       errorBox.style.display = "block";
       return;
     }
 
-    if (isNaN(rrValue) || rrValue <= 0) {
-      errorBox.textContent = "Informe um R:R médio válido (maior que zero).";
+    if (!rrValue || rrValue <= 0) {
+      errorBox.innerText = "Informe um R:R válido";
       errorBox.style.display = "block";
       return;
     }
 
-    if (isNaN(numTradesValue) || numTradesValue <= 0) {
-      errorBox.textContent = "Informe um número de trades válido (maior que zero).";
+    if (!numTradesValue || numTradesValue <= 0) {
+      errorBox.innerText = "Informe o número de trades";
       errorBox.style.display = "block";
       return;
     }
 
-    // Cálculos
-    const p = winRateValue / 100;          // prob de ganho
-    const q = 1 - p;                       // prob de perda
+    const p = winRateValue / 100;
     const riskDecimal = riskPctValue / 100;
 
-    const riskAmount = bankValue * riskDecimal;     // $ arriscado por trade
-    const winAmountPerTrade = riskAmount * rrValue; // $ ganho no win
-    const lossAmountPerTrade = riskAmount;          // $ perdido no loss
+    const riskAmount = bankValue * riskDecimal;
+    const winAmount = riskAmount * rrValue;
 
-    const expectancyR = p * rrValue - q * 1;        // expectativa em R
-    const expectancyPct = expectancyR * riskDecimal * 100; // % da banca por trade
+    const expectancy = (p * rrValue) - (1 - p);
+    const growth = (1 + (expectancy * riskDecimal));
 
-    const growthFactor = 1 + (expectancyPct / 100);
-    const expectedBank = bankValue * Math.pow(growthFactor, numTradesValue);
+    const expected = bankValue * Math.pow(growth, numTradesValue);
+    const allWins = bankValue * Math.pow(1 + (riskDecimal * rrValue), numTradesValue);
+    const allLosses = bankValue * Math.pow(1 - riskDecimal, numTradesValue);
 
-    const bankAllWins = bankValue * Math.pow(1 + riskDecimal * rrValue, numTradesValue);
-    const bankAllLosses = bankValue * Math.pow(1 - riskDecimal, numTradesValue);
-
-    // Atualiza rótulos com N trades
-    labelExpectedEl.textContent =
+    document.getElementById("labelExpected").innerText =
       `Banca esperada após ${numTradesValue} trades (média)`;
-    labelAllWinsEl.textContent =
+    document.getElementById("labelAllWins").innerText =
       `Banca se TODOS os ${numTradesValue} trades forem vencedores`;
-    labelAllLossesEl.textContent =
+    document.getElementById("labelAllLosses").innerText =
       `Banca se TODOS os ${numTradesValue} trades forem perdedores`;
 
-    // Mostra valores
-    winPerTradeEl.textContent = "US$ " + formatMoney(winAmountPerTrade);
-    lossPerTradeEl.textContent = "US$ " + formatMoney(lossAmountPerTrade);
-    expectedBankEl.textContent = "US$ " + formatMoney(expectedBank);
-    bankAllWinsEl.textContent = "US$ " + formatMoney(bankAllWins);
-    bankAllLossesEl.textContent = "US$ " + formatMoney(bankAllLosses);
+    document.getElementById("winPerTrade").innerText = "US$ " + formatMoney(winAmount);
+    document.getElementById("lossPerTrade").innerText = "US$ " + formatMoney(riskAmount);
 
-    // Badge de expectativa
-    if (expectancyR > 0) {
-      expBadge.textContent = "Estratégia com expectativa POSITIVA (matemática a seu favor)";
-    } else if (expectancyR < 0) {
-      expBadge.textContent = "Estratégia com expectativa NEGATIVA (matemática contra você)";
+    document.getElementById("expectedBank").innerText = "US$ " + formatMoney(expected);
+    document.getElementById("bankAllWins").innerText = "US$ " + formatMoney(allWins);
+    document.getElementById("bankAllLosses").innerText = "US$ " + formatMoney(allLosses);
+
+    if (expectancy > 0) {
+      expBadge.innerText = "Estratégia com expectativa POSITIVA";
+    } else if (expectancy < 0) {
+      expBadge.innerText = "Estratégia com expectativa NEGATIVA";
       expBadge.classList.add("badge-neg");
     } else {
-      expBadge.textContent = "Expectativa NEUTRA (banca tende a andar de lado)";
-      expBadge.classList.add("badge-neg");
+      expBadge.innerText = "Expectativa NEUTRA";
     }
 
     resultsBox.style.display = "block";
+
   });
 });
-
