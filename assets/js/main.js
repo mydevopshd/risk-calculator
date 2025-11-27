@@ -98,47 +98,107 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  /* =============================
-     FERRAMENTA B - POSIÇÃO
-  ============================== */
-  document.getElementById("calcPositionBtn").addEventListener("click", () => {
+  // =============================
+// FERRAMENTA B - POSIÇÃO (COM MODOS)
+// =============================
 
-    const riskUSD = parseFloat(document.getElementById("riskUSD").value);
-    const stopPct = parseFloat(document.getElementById("stopPct").value);
-    const leverage = parseFloat(document.getElementById("leverage").value) || 1;
-    const entryPrice = parseFloat(document.getElementById("entryPrice").value);
+let currentMode = "mode1";
 
-    const errorBox = document.getElementById("posError");
-    const resultsBox = document.getElementById("posResults");
+function setMode(mode) {
+  currentMode = mode;
 
-    errorBox.style.display = "none";
-    resultsBox.style.display = "none";
+  const mode1Fields = document.getElementById("mode1Fields");
+  const mode2Fields = document.getElementById("mode2Fields");
 
-    if (!riskUSD || !stopPct) {
-      errorBox.innerText = "Preencha risco e stop corretamente.";
+  const mode1Btn = document.getElementById("mode1Btn");
+  const mode2Btn = document.getElementById("mode2Btn");
+
+  if (mode === "mode1") {
+    mode1Fields.style.display = "flex";
+    mode2Fields.style.display = "none";
+    mode1Btn.classList.add("active");
+    mode2Btn.classList.remove("active");
+  } else {
+    mode1Fields.style.display = "none";
+    mode2Fields.style.display = "flex";
+    mode2Btn.classList.add("active");
+    mode1Btn.classList.remove("active");
+  }
+
+  document.getElementById("result").style.display = "none";
+  document.getElementById("error").style.display = "none";
+}
+
+// eventos dos modos
+document.getElementById("mode1Btn").addEventListener("click", () => setMode("mode1"));
+document.getElementById("mode2Btn").addEventListener("click", () => setMode("mode2"));
+
+// cálculo principal
+document.getElementById("calcBtn").addEventListener("click", () => {
+
+  const risk = parseFloat(document.getElementById("risk").value);
+  const leverage = parseFloat(document.getElementById("leverage").value) || 1;
+
+  const stopPercentInput = document.getElementById("stopPercent");
+  const entryInput = document.getElementById("entryPrice");
+  const stopPriceInput = document.getElementById("stopPrice");
+
+  const errorBox = document.getElementById("error");
+  const resultBox = document.getElementById("result");
+
+  errorBox.style.display = "none";
+  resultBox.style.display = "none";
+
+  if (!risk || risk <= 0) {
+    errorBox.textContent = "Informe um risco válido em US$";
+    errorBox.style.display = "block";
+    return;
+  }
+
+  let stopPercent;
+
+  if (currentMode === "mode1") {
+
+    const stopRaw = parseFloat(stopPercentInput.value);
+
+    if (!stopRaw || stopRaw <= 0) {
+      errorBox.textContent = "Informe o Stop Loss (%)";
       errorBox.style.display = "block";
       return;
     }
 
-    const positionSize = riskUSD / (stopPct / 100);
-    const margin = positionSize / leverage;
+    stopPercent = stopRaw;
 
-    let qty = "—";
-    if (entryPrice) {
-      qty = (positionSize / entryPrice).toFixed(6);
+  } else {
+
+    const entry = parseFloat(entryInput.value);
+    const stop = parseFloat(stopPriceInput.value);
+
+    if (!entry || !stop || entry <= 0 || stop <= 0) {
+      errorBox.textContent = "Informe entrada e stop corretamente";
+      errorBox.style.display = "block";
+      return;
     }
 
-    document.getElementById("positionSize").innerText =
-      "US$ " + formatMoney(positionSize);
+    if (entry === stop) {
+      errorBox.textContent = "Entrada e stop não podem ser iguais";
+      errorBox.style.display = "block";
+      return;
+    }
 
-    document.getElementById("marginNeeded").innerText =
-      "US$ " + formatMoney(margin);
+    const diff = Math.abs(entry - stop);
+    stopPercent = (diff / entry) * 100;
+  }
 
-    document.getElementById("positionQty").innerText =
-      qty === "—" ? "Informe o preço" : qty;
+  const positionSize = risk / (stopPercent / 100);
+  const margin = positionSize / leverage;
 
-    resultsBox.style.display = "block";
+  document.getElementById("stopValue").innerText = stopPercent.toFixed(2) + "%";
+  document.getElementById("posValue").innerText = "US$ " + positionSize.toFixed(2);
+  document.getElementById("marginValue").innerText = "US$ " + margin.toFixed(2);
 
-  });
+  resultBox.style.display = "block";
+});
+
 
 });
