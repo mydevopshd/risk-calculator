@@ -1,85 +1,102 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   /* =============================
      FUNÇÕES DE FORMATAÇÃO
   ============================== */
-  const formatMoney = (value) => {
+  function formatMoney(value) {
     return value.toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
-  };
+  }
 
-  const formatPercent = (value) => {
+  function formatPercent(value) {
     return value.toFixed(2) + "%";
-  };
-
+  }
 
   /* =============================
      MENU LATERAL (NAVEGAÇÃO)
   ============================== */
   const navButtons = document.querySelectorAll(".nav-btn[data-tool]");
+  const toolBancaSection = document.getElementById("tool-banca");
+  const toolPosicaoSection = document.getElementById("tool-posicao");
 
-  const tools = {
-    "tool-banca": document.getElementById("tool-banca"),
-    "tool-posicao": document.getElementById("tool-posicao")
-  };
-
-  navButtons.forEach(btn => {
+  navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
+      const selectedTool = btn.dataset.tool;
 
-      const tool = btn.dataset.tool;
-
-      navButtons.forEach(b => b.classList.remove("active"));
+      // Estilo ativo no menu
+      navButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
-      Object.keys(tools).forEach(key => {
-        tools[key].style.display = (key === tool) ? "block" : "none";
-      });
-
+      // Mostrar/ocultar seções
+      if (selectedTool === "tool-banca") {
+        toolBancaSection.style.display = "block";
+        toolPosicaoSection.style.display = "none";
+      } else if (selectedTool === "tool-posicao") {
+        toolBancaSection.style.display = "none";
+        toolPosicaoSection.style.display = "block";
+      }
     });
   });
 
+  // Deixar o simulador visível por padrão
+  if (toolBancaSection) toolBancaSection.style.display = "block";
+  if (toolPosicaoSection) toolPosicaoSection.style.display = "none";
 
   /* =============================
-     FERRAMENTA A – SIMULADOR
+     FERRAMENTA A – SIMULADOR DE BANCA
   ============================== */
   const simulateBtn = document.getElementById("simulateBtn");
 
   if (simulateBtn) {
     simulateBtn.addEventListener("click", () => {
+      const bankInput = document.getElementById("bank");
+      const riskPctInput = document.getElementById("riskPct");
+      const winRateInput = document.getElementById("winRate");
+      const rrInput = document.getElementById("rr");
+      const numTradesInput = document.getElementById("numTrades");
 
-      const bankValue     = parseFloat(document.getElementById("bank").value);
-      const riskPctValue  = parseFloat(document.getElementById("riskPct").value);
-      const winRateValue  = parseFloat(document.getElementById("winRate").value);
-      const rrValue        = parseFloat(document.getElementById("rr").value);
-      const tradesValue   = parseInt(document.getElementById("numTrades").value);
+      const bankValue = parseFloat(bankInput.value);
+      const riskPctValue = parseFloat(riskPctInput.value);
+      const winRateValue = parseFloat(winRateInput.value);
+      const rrValue = parseFloat(rrInput.value);
+      const tradesValue = parseInt(numTradesInput.value, 10);
 
-      const errorBox   = document.getElementById("simError");
+      const errorBox = document.getElementById("simError");
       const resultsBox = document.getElementById("simResults");
-      const expBadge   = document.getElementById("expBadge");
+      const expBadge = document.getElementById("expBadge");
 
       errorBox.style.display = "none";
       resultsBox.style.display = "none";
       expBadge.className = "badge";
 
-      if (!bankValue || !riskPctValue || !rrValue || !tradesValue) {
+      if (
+        isNaN(bankValue) ||
+        isNaN(riskPctValue) ||
+        isNaN(winRateValue) ||
+        isNaN(rrValue) ||
+        isNaN(tradesValue) ||
+        bankValue <= 0 ||
+        riskPctValue <= 0 ||
+        rrValue <= 0 ||
+        tradesValue <= 0
+      ) {
         errorBox.textContent = "Preencha todos os campos corretamente.";
         errorBox.style.display = "block";
         return;
       }
 
       const riskDecimal = riskPctValue / 100;
-      const riskAmount  = bankValue * riskDecimal;
-      const winAmount   = riskAmount * rrValue;
+      const riskAmount = bankValue * riskDecimal;
+      const winAmount = riskAmount * rrValue;
 
       const p = winRateValue / 100;
-      const expectancy = (p * rrValue) - (1 - p);
-      const growth     = 1 + (expectancy * riskDecimal);
+      const expectancy = p * rrValue - (1 - p);
+      const growth = 1 + expectancy * riskDecimal;
 
-      const expected   = bankValue * Math.pow(growth, tradesValue);
-      const allWins    = bankValue * Math.pow(1 + (riskDecimal * rrValue), tradesValue);
-      const allLosses  = bankValue * Math.pow(1 - riskDecimal, tradesValue);
+      const expected = bankValue * Math.pow(growth, tradesValue);
+      const allWins = bankValue * Math.pow(1 + riskDecimal * rrValue, tradesValue);
+      const allLosses = bankValue * Math.pow(1 - riskDecimal, tradesValue);
 
       document.getElementById("labelExpected").innerText =
         `Banca esperada após ${tradesValue} trades`;
@@ -90,159 +107,169 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("labelAllLosses").innerText =
         `Banca se TODOS os ${tradesValue} trades forem perdedores`;
 
-      document.getElementById("winPerTrade").innerText   =
+      document.getElementById("winPerTrade").innerText =
         "US$ " + formatMoney(winAmount);
 
-      document.getElementById("lossPerTrade").innerText  =
+      document.getElementById("lossPerTrade").innerText =
         "US$ " + formatMoney(riskAmount);
 
-      document.getElementById("expectedBank").innerText  =
+      document.getElementById("expectedBank").innerText =
         "US$ " + formatMoney(expected);
 
-      document.getElementById("bankAllWins").innerText   =
+      document.getElementById("bankAllWins").innerText =
         "US$ " + formatMoney(allWins);
 
       document.getElementById("bankAllLosses").innerText =
         "US$ " + formatMoney(allLosses);
 
       if (expectancy > 0) {
-        expBadge.innerText = "Estratégia com expectativa POSITIVA";
+        expBadge.textContent = "Estratégia com expectativa POSITIVA";
       } else if (expectancy < 0) {
-        expBadge.innerText = "Estratégia com expectativa NEGATIVA";
+        expBadge.textContent = "Estratégia com expectativa NEGATIVA";
         expBadge.classList.add("badge-neg");
       } else {
-        expBadge.innerText = "Expectativa NEUTRA";
+        expBadge.textContent = "Expectativa NEUTRA";
       }
 
       resultsBox.style.display = "block";
-
     });
   }
 
-
   /* =============================
-     FERRAMENTA B – POSIÇÃO
+     FERRAMENTA B – CALCULADORA DE POSIÇÃO
   ============================== */
 
+  // Estado atual do modo
   let currentMode = "mode1";
 
   const mode1Btn = document.getElementById("mode1Btn");
   const mode2Btn = document.getElementById("mode2Btn");
-
   const mode1Fields = document.getElementById("mode1Fields");
   const mode2Fields = document.getElementById("mode2Fields");
 
-  const resultPos = document.getElementById("result");
-  const errorPos  = document.getElementById("error");
+  const resultPosBox = document.getElementById("result");
+  const errorPosBox = document.getElementById("error");
 
-  if (mode1Btn && mode2Btn) {
+  // Função para trocar de modo
+  function setMode(mode) {
+    currentMode = mode;
 
-    mode1Btn.addEventListener("click", () => {
-      currentMode = "mode1";
+    if (!mode1Fields || !mode2Fields || !mode1Btn || !mode2Btn) {
+      return;
+    }
 
-      mode1Btn.classList.add("active");
-      mode2Btn.classList.remove("active");
-
+    if (mode === "mode1") {
       mode1Fields.style.display = "flex";
       mode2Fields.style.display = "none";
 
-      resultPos.style.display = "none";
-      errorPos.style.display = "none";
-    });
-
-    mode2Btn.addEventListener("click", () => {
-      currentMode = "mode2";
+      mode1Btn.classList.add("active");
+      mode2Btn.classList.remove("active");
+    } else {
+      mode1Fields.style.display = "none";
+      mode2Fields.style.display = "flex";
 
       mode2Btn.classList.add("active");
       mode1Btn.classList.remove("active");
+    }
 
-      mode2Fields.style.display = "flex";
-      mode1Fields.style.display = "none";
-
-      resultPos.style.display = "none";
-      errorPos.style.display = "none";
-    });
-
+    if (resultPosBox) resultPosBox.style.display = "none";
+    if (errorPosBox) errorPosBox.style.display = "none";
   }
 
+  // Liga os botões de modo
+  if (mode1Btn && mode2Btn) {
+    mode1Btn.addEventListener("click", () => setMode("mode1"));
+    mode2Btn.addEventListener("click", () => setMode("mode2"));
+  }
 
-  /* =============================
-     CÁLCULO DA POSIÇÃO
-  ============================== */
+  // Define modo inicial
+  setMode("mode1");
+
+  // Botão Calcular posição
   const calcBtn = document.getElementById("calcBtn");
 
   if (calcBtn) {
-
     calcBtn.addEventListener("click", () => {
+      const riskInput = document.getElementById("risk");
+      const leverageInput = document.getElementById("leverage");
+      const stopPercentInput = document.getElementById("stopPercent");
+      const entryInput = document.getElementById("entryPrice");
+      const stopPriceInput = document.getElementById("stopPrice");
 
-      const riskInput       = document.getElementById("risk");
-      const leverageInput   = document.getElementById("leverage");
-      const stopPctInput     = document.getElementById("stopPercent");
-      const entryInput       = document.getElementById("entryPrice");
-      const stopPriceInput   = document.getElementById("stopPrice");
+      if (!errorPosBox || !resultPosBox) return;
 
-      const riskValue     = parseFloat(riskInput.value);
-      const leverageValue = parseFloat(leverageInput.value) || 1;
+      errorPosBox.style.display = "none";
+      resultPosBox.style.display = "none";
 
-      errorPos.style.display  = "none";
-      resultPos.style.display = "none";
+      const riskValue = parseFloat(riskInput.value);
+      let leverageValue = parseFloat(leverageInput.value);
 
-      if (!riskValue || riskValue <= 0) {
-        errorPos.textContent = "Informe um risco válido em US$";
-        errorPos.style.display = "block";
+      if (isNaN(riskValue) || riskValue <= 0) {
+        errorPosBox.textContent = "Informe um risco válido em US$.";
+        errorPosBox.style.display = "block";
         return;
+      }
+
+      if (isNaN(leverageValue) || leverageValue <= 0) {
+        leverageValue = 1;
       }
 
       let stopPercentValue;
 
       if (currentMode === "mode1") {
+        const stopRaw = parseFloat(stopPercentInput.value);
 
-        const stopRaw = parseFloat(stopPctInput.value);
-
-        if (!stopRaw || stopRaw <= 0) {
-          errorPos.textContent = "Informe um Stop Loss (%) válido";
-          errorPos.style.display = "block";
+        if (isNaN(stopRaw) || stopRaw <= 0) {
+          errorPosBox.textContent = "Informe um Stop Loss (%) válido.";
+          errorPosBox.style.display = "block";
           return;
         }
 
         stopPercentValue = stopRaw;
-
       } else {
+        const entryValue = parseFloat(entryInput.value);
+        const stopPriceValue = parseFloat(stopPriceInput.value);
 
-        const entry = parseFloat(entryInput.value);
-        const stop  = parseFloat(stopPriceInput.value);
-
-        if (!entry || !stop || entry <= 0 || stop <= 0) {
-          errorPos.textContent = "Informe entrada e stop corretamente";
-          errorPos.style.display = "block";
+        if (
+          isNaN(entryValue) ||
+          isNaN(stopPriceValue) ||
+          entryValue <= 0 ||
+          stopPriceValue <= 0
+        ) {
+          errorPosBox.textContent = "Informe entrada e stop corretamente.";
+          errorPosBox.style.display = "block";
           return;
         }
 
-        if (entry === stop) {
-          errorPos.textContent = "Entrada e stop não podem ser iguais";
-          errorPos.style.display = "block";
+        if (entryValue === stopPriceValue) {
+          errorPosBox.textContent = "Entrada e stop não podem ser iguais.";
+          errorPosBox.style.display = "block";
           return;
         }
 
-        stopPercentValue = Math.abs(entry - stop) / entry * 100;
+        const diff = Math.abs(entryValue - stopPriceValue);
+        stopPercentValue = (diff / entryValue) * 100;
+      }
+
+      if (stopPercentValue <= 0) {
+        errorPosBox.textContent = "Stop calculado inválido. Verifique os valores.";
+        errorPosBox.style.display = "block";
+        return;
       }
 
       const positionSize = riskValue / (stopPercentValue / 100);
-      const margin       = positionSize / leverageValue;
+      const marginValue = positionSize / leverageValue;
 
-      document.getElementById("stopValue").innerText   =
+      document.getElementById("stopValue").textContent =
         formatPercent(stopPercentValue);
 
-      document.getElementById("posValue").innerText    =
+      document.getElementById("posValue").textContent =
         "US$ " + formatMoney(positionSize);
 
-      document.getElementById("marginValue").innerText =
-        "US$ " + formatMoney(margin);
+      document.getElementById("marginValue").textContent =
+        "US$ " + formatMoney(marginValue);
 
-      resultPos.style.display = "block";
-
+      resultPosBox.style.display = "block";
     });
-
   }
-
 });
