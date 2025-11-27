@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  /* =============================
+     FORMATAÇÃO
+  ============================== */
   const formatMoney = (value) => {
     return value.toLocaleString("en-US", {
       minimumFractionDigits: 2,
@@ -7,8 +10,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  const formatPercent = (value) => {
+    return value.toFixed(2) + "%";
+  };
+
+
   /* =============================
-     MENU - troca de ferramentas
+     MENU LATERAL (NAVEGAÇÃO)
   ============================== */
   const navButtons = document.querySelectorAll(".nav-btn[data-tool]");
 
@@ -20,11 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
   navButtons.forEach(btn => {
     btn.addEventListener("click", () => {
 
-      const tool = btn.getAttribute("data-tool");
+      const tool = btn.dataset.tool;
 
+      // Muda visual do botão
       navButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
+      // Mostra a ferramenta correta
       Object.keys(tools).forEach(key => {
         tools[key].style.display = (key === tool) ? "block" : "none";
       });
@@ -34,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   /* =============================
-     FERRAMENTA A - BANCA
+     FERRAMENTA A - SIMULADOR DE BANCA
   ============================== */
   document.getElementById("simulateBtn").addEventListener("click", () => {
 
@@ -58,12 +68,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const p = winRate / 100;
     const riskDecimal = riskPct / 100;
-
     const riskAmount = bank * riskDecimal;
     const winAmount = riskAmount * rr;
 
+    const p = winRate / 100;
     const expectancy = (p * rr) - (1 - p);
     const growth = 1 + (expectancy * riskDecimal);
 
@@ -72,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const allLosses = bank * Math.pow(1 - riskDecimal, N);
 
     document.getElementById("labelExpected").innerText =
-      `Banca esperada após ${N} trades (média)`;
+      `Banca esperada após ${N} trades`;
 
     document.getElementById("labelAllWins").innerText =
       `Banca se TODOS os ${N} trades forem vencedores`;
@@ -80,125 +89,140 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("labelAllLosses").innerText =
       `Banca se TODOS os ${N} trades forem perdedores`;
 
-    document.getElementById("winPerTrade").innerText = "US$ " + formatMoney(winAmount);
-    document.getElementById("lossPerTrade").innerText = "US$ " + formatMoney(riskAmount);
-    document.getElementById("expectedBank").innerText = "US$ " + formatMoney(expected);
-    document.getElementById("bankAllWins").innerText = "US$ " + formatMoney(allWins);
-    document.getElementById("bankAllLosses").innerText = "US$ " + formatMoney(allLosses);
+    document.getElementById("winPerTrade").innerText =
+      "US$ " + formatMoney(winAmount);
+
+    document.getElementById("lossPerTrade").innerText =
+      "US$ " + formatMoney(riskAmount);
+
+    document.getElementById("expectedBank").innerText =
+      "US$ " + formatMoney(expected);
+
+    document.getElementById("bankAllWins").innerText =
+      "US$ " + formatMoney(allWins);
+
+    document.getElementById("bankAllLosses").innerText =
+      "US$ " + formatMoney(allLosses);
 
     if (expectancy > 0) {
       expBadge.innerText = "Estratégia com expectativa POSITIVA";
-    } else {
-      expBadge.innerText = "Estratégia com expectativa NEGATIVA / NEUTRA";
+    } else if (expectancy < 0) {
+      expBadge.innerText = "Estratégia com expectativa NEGATIVA";
       expBadge.classList.add("badge-neg");
+    } else {
+      expBadge.innerText = "Expectativa NEUTRA";
     }
 
     resultsBox.style.display = "block";
-
   });
 
 
-  // =============================
-// FERRAMENTA B - POSIÇÃO (COM MODOS)
-// =============================
 
-let currentMode = "mode1";
+  /* =============================
+     FERRAMENTA B - POSIÇÃO
+  ============================== */
 
-function setMode(mode) {
-  currentMode = mode;
-
-  const mode1Fields = document.getElementById("mode1Fields");
-  const mode2Fields = document.getElementById("mode2Fields");
+  let currentMode = "mode1";
 
   const mode1Btn = document.getElementById("mode1Btn");
   const mode2Btn = document.getElementById("mode2Btn");
 
-  if (mode === "mode1") {
-    mode1Fields.style.display = "flex";
-    mode2Fields.style.display = "none";
+  const mode1Fields = document.getElementById("mode1Fields");
+  const mode2Fields = document.getElementById("mode2Fields");
+
+  const resultBox = document.getElementById("result");
+  const errorBox = document.getElementById("error");
+
+  // Botões de modo
+  mode1Btn.addEventListener("click", () => {
+    currentMode = "mode1";
     mode1Btn.classList.add("active");
     mode2Btn.classList.remove("active");
-  } else {
-    mode1Fields.style.display = "none";
-    mode2Fields.style.display = "flex";
+    mode1Fields.style.display = "flex";
+    mode2Fields.style.display = "none";
+
+    resultBox.style.display = "none";
+    errorBox.style.display = "none";
+  });
+
+  mode2Btn.addEventListener("click", () => {
+    currentMode = "mode2";
     mode2Btn.classList.add("active");
     mode1Btn.classList.remove("active");
-  }
+    mode2Fields.style.display = "flex";
+    mode1Fields.style.display = "none";
 
-  document.getElementById("result").style.display = "none";
-  document.getElementById("error").style.display = "none";
-}
+    resultBox.style.display = "none";
+    errorBox.style.display = "none";
+  });
 
-// eventos dos modos
-document.getElementById("mode1Btn").addEventListener("click", () => setMode("mode1"));
-document.getElementById("mode2Btn").addEventListener("click", () => setMode("mode2"));
 
-// cálculo principal
-document.getElementById("calcBtn").addEventListener("click", () => {
+  // BOTÃO CALCULAR POSIÇÃO
+  document.getElementById("calcBtn").addEventListener("click", () => {
 
-  const risk = parseFloat(document.getElementById("risk").value);
-  const leverage = parseFloat(document.getElementById("leverage").value) || 1;
+    const risk = parseFloat(document.getElementById("risk").value);
+    const leverage = parseFloat(document.getElementById("leverage").value) || 1;
 
-  const stopPercentInput = document.getElementById("stopPercent");
-  const entryInput = document.getElementById("entryPrice");
-  const stopPriceInput = document.getElementById("stopPrice");
+    const stopPercentInput = document.getElementById("stopPercent");
+    const entryInput = document.getElementById("entryPrice");
+    const stopPriceInput = document.getElementById("stopPrice");
 
-  const errorBox = document.getElementById("error");
-  const resultBox = document.getElementById("result");
+    errorBox.style.display = "none";
+    resultBox.style.display = "none";
 
-  errorBox.style.display = "none";
-  resultBox.style.display = "none";
-
-  if (!risk || risk <= 0) {
-    errorBox.textContent = "Informe um risco válido em US$";
-    errorBox.style.display = "block";
-    return;
-  }
-
-  let stopPercent;
-
-  if (currentMode === "mode1") {
-
-    const stopRaw = parseFloat(stopPercentInput.value);
-
-    if (!stopRaw || stopRaw <= 0) {
-      errorBox.textContent = "Informe o Stop Loss (%)";
+    if (!risk || risk <= 0) {
+      errorBox.innerText = "Informe um risco válido em US$";
       errorBox.style.display = "block";
       return;
     }
 
-    stopPercent = stopRaw;
+    let stopPercent;
 
-  } else {
+    if (currentMode === "mode1") {
 
-    const entry = parseFloat(entryInput.value);
-    const stop = parseFloat(stopPriceInput.value);
+      const stopRaw = parseFloat(stopPercentInput.value);
 
-    if (!entry || !stop || entry <= 0 || stop <= 0) {
-      errorBox.textContent = "Informe entrada e stop corretamente";
-      errorBox.style.display = "block";
-      return;
+      if (!stopRaw || stopRaw <= 0) {
+        errorBox.innerText = "Informe um Stop Loss (%) válido";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      stopPercent = stopRaw;
+
+    } else {
+
+      const entry = parseFloat(entryInput.value);
+      const stop = parseFloat(stopPriceInput.value);
+
+      if (!entry || !stop || entry <= 0 || stop <= 0) {
+        errorBox.innerText = "Informe preço de entrada e stop corretamente";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      if (entry === stop) {
+        errorBox.innerText = "Entrada e stop não podem ser iguais";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      stopPercent = Math.abs(entry - stop) / entry * 100;
     }
 
-    if (entry === stop) {
-      errorBox.textContent = "Entrada e stop não podem ser iguais";
-      errorBox.style.display = "block";
-      return;
-    }
+    const positionSize = risk / (stopPercent / 100);
+    const margin = positionSize / leverage;
 
-    const diff = Math.abs(entry - stop);
-    stopPercent = (diff / entry) * 100;
-  }
+    document.getElementById("stopValue").innerText =
+      formatPercent(stopPercent);
 
-  const positionSize = risk / (stopPercent / 100);
-  const margin = positionSize / leverage;
+    document.getElementById("posValue").innerText =
+      "US$ " + formatMoney(positionSize);
 
-  document.getElementById("stopValue").innerText = stopPercent.toFixed(2) + "%";
-  document.getElementById("posValue").innerText = "US$ " + positionSize.toFixed(2);
-  document.getElementById("marginValue").innerText = "US$ " + margin.toFixed(2);
+    document.getElementById("marginValue").innerText =
+      "US$ " + formatMoney(margin);
 
-  resultBox.style.display = "block";
-});
-
+    resultBox.style.display = "block";
+  });
 
 });
