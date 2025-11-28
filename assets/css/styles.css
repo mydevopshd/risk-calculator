@@ -83,21 +83,26 @@ body {
   color: #6b7280;
 }
 
-/* MAIN */
+/* MAIN (ÁREA DAS FERRAMENTAS) */
 .main {
   flex: 1;
-  padding: 30px 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;               /* ativa flexbox */
+  justify-content: center;     /* centraliza horizontal */
+  align-items: center;         /* centraliza vertical */
+  padding: 40px;
 }
 
-/* CARDS */
+/* CARDS (PAINEL DAS FERRAMENTAS) */
 .card {
   background: #020617;
   border-radius: 16px;
   padding: 20px;
   border: 1px solid #1f2937;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+
+  /* largura controlada para ficar bonito no centro */
+  width: 100%;
+  max-width: 1100px;
 }
 
 .main-title {
@@ -277,5 +282,6 @@ input:focus {
 
   .main {
     padding: 20px 12px 32px;
+    display: block;       /* no mobile deixa fluir normal, sem centralizar vertical */
   }
 }
