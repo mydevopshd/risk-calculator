@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const navButtons = document.querySelectorAll(".nav-btn[data-tool]");
   const toolBancaSection = document.getElementById("tool-banca");
   const toolPosicaoSection = document.getElementById("tool-posicao");
+  const toolBreakEvenSection = document.getElementById("tool-breakeven");
 
   navButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -32,9 +33,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (selectedTool === "tool-banca") {
         toolBancaSection.style.display = "block";
         toolPosicaoSection.style.display = "none";
+        toolBreakEvenSection.style.display = "none";
       } else if (selectedTool === "tool-posicao") {
         toolBancaSection.style.display = "none";
         toolPosicaoSection.style.display = "block";
+        toolBreakEvenSection.style.display = "none";
+      } else if (selectedTool === "tool-breakeven") {
+        toolBancaSection.style.display = "none";
+        toolPosicaoSection.style.display = "none";
+        toolBreakEvenSection.style.display = "block";
       }
     });
   });
@@ -42,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Deixar o simulador visível por padrão
   if (toolBancaSection) toolBancaSection.style.display = "block";
   if (toolPosicaoSection) toolPosicaoSection.style.display = "none";
+  if (toolBreakEvenSection) toolBreakEvenSection.style.display = "none";
 
   /* =============================
      FERRAMENTA A – SIMULADOR DE BANCA
