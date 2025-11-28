@@ -89,6 +89,24 @@ body {
   padding: 30px 24px;
   max-width: 1200px;
   margin: 0 auto;
+
+  /* 🔥 Centralizar o painel */
+  display: flex;
+  justify-content: center;   /* horizontal */
+  align-items: center;       /* vertical */
+}
+
+/* CARDS */
+.card {
+  background: #020617;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #1f2937;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+
+  /* 🔥 limitar largura para ficar bonito no centro */
+  width: 100%;
+  max-width: 1100px;
 }
 
 .main-title {
@@ -100,15 +118,6 @@ body {
   font-size: 0.9rem;
   color: #9ca3af;
   margin-bottom: 18px;
-}
-
-/* CARDS */
-.card {
-  background: #020617;
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid #1f2937;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
 }
 
 /* FORMULÁRIOS */
@@ -246,7 +255,9 @@ input:focus {
     flex-wrap: wrap;
   }
 
+  /* 🔥 No mobile volta a ficar em coluna normal */
   .main {
     padding: 20px 12px 32px;
+    display: block;
   }
 }
