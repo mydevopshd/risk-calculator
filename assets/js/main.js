@@ -31,22 +31,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Mostrar/ocultar seções
       if (selectedTool === "tool-banca") {
-        toolBancaSection.style.display = "block";
-        toolPosicaoSection.style.display = "none";
-        toolBreakEvenSection.style.display = "none";
+        if (toolBancaSection) toolBancaSection.style.display = "block";
+        if (toolPosicaoSection) toolPosicaoSection.style.display = "none";
+        if (toolBreakEvenSection) toolBreakEvenSection.style.display = "none";
       } else if (selectedTool === "tool-posicao") {
-        toolBancaSection.style.display = "none";
-        toolPosicaoSection.style.display = "block";
-        toolBreakEvenSection.style.display = "none";
+        if (toolBancaSection) toolBancaSection.style.display = "none";
+        if (toolPosicaoSection) toolPosicaoSection.style.display = "block";
+        if (toolBreakEvenSection) toolBreakEvenSection.style.display = "none";
       } else if (selectedTool === "tool-breakeven") {
-        toolBancaSection.style.display = "none";
-        toolPosicaoSection.style.display = "none";
-        toolBreakEvenSection.style.display = "block";
+        if (toolBancaSection) toolBancaSection.style.display = "none";
+        if (toolPosicaoSection) toolPosicaoSection.style.display = "none";
+        if (toolBreakEvenSection) toolBreakEvenSection.style.display = "block";
       }
     });
   });
 
-  // Deixar o simulador visível por padrão
+  // Visibilidade inicial
   if (toolBancaSection) toolBancaSection.style.display = "block";
   if (toolPosicaoSection) toolPosicaoSection.style.display = "none";
   if (toolBreakEvenSection) toolBreakEvenSection.style.display = "none";
@@ -147,7 +147,6 @@ document.addEventListener("DOMContentLoaded", () => {
      FERRAMENTA B – CALCULADORA DE POSIÇÃO
   ============================== */
 
-  // Estado atual do modo
   let currentMode = "mode1";
 
   const mode1Btn = document.getElementById("mode1Btn");
@@ -158,7 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultPosBox = document.getElementById("result");
   const errorPosBox = document.getElementById("error");
 
-  // Função para trocar de modo
   function setMode(mode) {
     currentMode = mode;
 
@@ -184,16 +182,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (errorPosBox) errorPosBox.style.display = "none";
   }
 
-  // Liga os botões de modo
   if (mode1Btn && mode2Btn) {
     mode1Btn.addEventListener("click", () => setMode("mode1"));
     mode2Btn.addEventListener("click", () => setMode("mode2"));
   }
 
-  // Define modo inicial
   setMode("mode1");
 
-  // Botão Calcular posição
   const calcBtn = document.getElementById("calcBtn");
 
   if (calcBtn) {
